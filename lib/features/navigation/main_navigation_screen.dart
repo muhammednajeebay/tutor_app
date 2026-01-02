@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:tutor_app/core/widgets/coming_soon_screen.dart';
 import 'package:tutor_app/features/home/screens/home_screen.dart';
+import 'package:tutor_app/features/subject/screens/subject_screen.dart';
 import 'package:tutor_app/utils/const/app_colors.dart';
 import 'package:tutor_app/utils/const/app_strings.dart';
 
@@ -17,7 +18,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   final List<Widget> _screens = [
     const HomeScreen(),
-    const ComingSoonScreen(title: 'Subjects'),
+    const SubjectScreen(),
     const ComingSoonScreen(title: 'Streaks'),
     const ComingSoonScreen(title: 'Profile'),
   ];

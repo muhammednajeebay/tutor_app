@@ -4,11 +4,14 @@ import 'package:tutor_app/core/network/api_client.dart';
 import 'package:tutor_app/core/services/storage_service.dart';
 import 'package:tutor_app/core/theme/app_theme.dart';
 import 'package:tutor_app/data/repositories/home_repository.dart';
+import 'package:tutor_app/data/repositories/video_repository.dart';
 import 'package:tutor_app/data/services/api_service.dart';
 import 'package:tutor_app/data/services/home_api_service.dart';
 import 'package:tutor_app/features/home/controllers/home_controller.dart';
+import 'package:tutor_app/features/subject/controllers/subject_controller.dart';
 import 'package:tutor_app/features/navigation/main_navigation_screen.dart';
 import 'package:tutor_app/features/onboarding/screens/onboarding_screen.dart';
+import 'package:tutor_app/features/subject/screens/subject_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,6 +38,13 @@ void _registerDependencies() {
       repository: HomeRepositoryImpl(HomeApiService(Get.find<ApiClient>())),
     ),
   );
+
+  // Register SubjectController
+  Get.lazyPut<SubjectController>(
+    () => SubjectController(
+      repository: VideoRepositoryImpl(Get.find<ApiService>()),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -56,6 +66,7 @@ class MyApp extends StatelessWidget {
       getPages: [
         GetPage(name: '/home', page: () => const MainNavigationScreen()),
         GetPage(name: '/onboarding', page: () => const OnboardingScreen()),
+        GetPage(name: '/subject', page: () => const SubjectScreen()),
       ],
     );
   }
