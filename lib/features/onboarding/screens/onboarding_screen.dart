@@ -60,12 +60,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void _finishOnboarding() async {
-    // Save onboarding completion
     await StorageService().setOnboardingComplete(true);
-
-    // Navigate to home screen using GetX
     if (mounted) {
-      Get.offAllNamed('/home');
+      Get.offAllNamed('/main-navigation');
     }
   }
 

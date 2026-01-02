@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:tutor_app/core/network/api_client.dart';
 import 'package:tutor_app/core/services/storage_service.dart';
 import 'package:tutor_app/core/theme/app_theme.dart';
-import 'package:tutor_app/features/home/screens/home_screen.dart';
+import 'package:tutor_app/data/repositories/home_repository.dart';
+import 'package:tutor_app/data/services/api_service.dart';
+import 'package:tutor_app/data/services/home_api_service.dart';
+import 'package:tutor_app/features/home/controllers/home_controller.dart';
+import 'package:tutor_app/features/navigation/main_navigation_screen.dart';
 import 'package:tutor_app/features/onboarding/screens/onboarding_screen.dart';
 
 void main() async {
@@ -11,7 +16,25 @@ void main() async {
   // Initialize GetStorage
   await StorageService.init();
 
+  // Register dependencies
+  _registerDependencies();
+
   runApp(const MyApp());
+}
+
+void _registerDependencies() {
+  // Register ApiClient
+  Get.lazyPut<ApiClient>(() => ApiClient());
+
+  // Register ApiService
+  Get.lazyPut<ApiService>(() => ApiService(Get.find<ApiClient>()));
+
+  // Register HomeController
+  Get.lazyPut<HomeController>(
+    () => HomeController(
+      repository: HomeRepositoryImpl(HomeApiService(Get.find<ApiClient>())),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -26,13 +49,12 @@ class MyApp extends StatelessWidget {
       title: 'Tutor App',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      // Show home if onboarding complete, otherwise show onboarding
       home: isOnboardingComplete
-          ? const HomeScreen()
+          ? const MainNavigationScreen()
           : const OnboardingScreen(),
       // Define named routes
       getPages: [
-        GetPage(name: '/home', page: () => const HomeScreen()),
+        GetPage(name: '/home', page: () => const MainNavigationScreen()),
         GetPage(name: '/onboarding', page: () => const OnboardingScreen()),
       ],
     );
