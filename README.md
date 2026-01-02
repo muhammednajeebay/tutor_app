@@ -1,16 +1,54 @@
-# tutor_app
+# Tutor App
 
-A new Flutter project.
+tutor_app is a comprehensive educational platform built with Flutter, designed to provide students with a structured and engaging learning experience. From tracking daily streaks to watching in-depth video lectures, current application offers a seamless interface for academic progress.
 
-## Getting Started
+## 🚀 Features
 
-This project is a starting point for a Flutter application.
+- **Interactive Streaks**: Gamified daily progress tracking with a beautiful, winding path UI.
+- **Video Learning**: Integrated video player supporting lectures with playback controls.
+- **Subject Modules**: Organized content delivery for various subjects and topics.
+- **Smart Navigation**: Smooth transitions and clear navigation flow.
+- **Platform Ready**: Configured for both Android and iOS (including HTTP video support).
 
-A few resources to get you started if this is your first Flutter project:
+## 🛠 Tech Stack
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- **Framework**: [Flutter](https://flutter.dev)
+- **Language**: [Dart](https://dart.dev)
+- **State Management**: [GetX](https://pub.dev/packages/get)
+- **Architecture**: Clean Architecture (Data/Domain/Presentation separation)
+- **Video Player**: `video_player` plugin customized for education.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## 📸 Functionality Overview
+
+### App Screenshots
+
+<p float="left">
+  <img src="sc1.jpeg" width="180" />
+  <img src="sc2.jpeg" width="180" /> 
+  <img src="sc3.jpeg" width="180" />
+  <img src="sc4.jpeg" width="180" />
+  <img src="sc5.jpeg" width="180" />
+</p>
+
+### ▶️ Demo
+
+[**Watch the App Walkthrough (MP4)**](sr1.mp4)
+
+## 🔧 Getting Started
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/tutor_app.git
+   ```
+
+2. **Install dependencies**
+   ```bash
+   flutter pub get
+   ```
+
+3. **Run the app**
+   ```bash
+   flutter run
+   ```
+   *Note: Ensure you have an emulator running or a physical device connected.*
+
