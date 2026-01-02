@@ -8,7 +8,7 @@ class SubjectController extends GetxController {
   final VideoRepository _repository;
 
   SubjectController({required VideoRepository repository})
-    : _repository = repository;
+      : _repository = repository;
 
   // State
   final isLoading = true.obs;
@@ -45,10 +45,14 @@ class SubjectController extends GetxController {
 
       AppLogger.success('Video details loaded successfully', tag: 'SUBJECT');
 
-      // // Auto-play first video if available
+      // Auto-play first unlocked video if available
       if (data.videos?.videos != null && data.videos!.videos!.isNotEmpty) {
-        final firstVideo = data.videos!.videos!.first;
-        selectVideo(firstVideo);
+        // Find first unlocked video
+        final firstUnlockedVideo = data.videos!.videos!.firstWhere(
+          (v) => v.status != 'locked',
+          orElse: () => data.videos!.videos!.first,
+        );
+        selectVideo(firstUnlockedVideo);
       }
     } catch (e, stackTrace) {
       AppLogger.error(
@@ -58,6 +62,7 @@ class SubjectController extends GetxController {
         stackTrace: stackTrace,
       );
       hasError.value = true;
+      errorMessage.value = 'Failed to load videos. Please try again.';
     } finally {
       isLoading.value = false;
     }
@@ -68,17 +73,17 @@ class SubjectController extends GetxController {
     await fetchVideoDetails(forceRefresh: true);
   }
 
-  bool _isValidHttpsVideo(String url) {
-    final uri = Uri.tryParse(url);
-    return uri != null && uri.scheme == 'https';
-  }
-
   void selectVideo(Video video) {
     // Don't allow locked videos to be played
     if (video.status == 'locked') {
       AppLogger.warning(
         'Attempted to play locked video: ${video.title}',
         tag: 'SUBJECT',
+      );
+      Get.snackbar(
+        'Video Locked',
+        'Complete previous videos to unlock this one',
+        snackPosition: SnackPosition.BOTTOM,
       );
       return;
     }
@@ -88,19 +93,12 @@ class SubjectController extends GetxController {
 
     if (video.videoUrl == null || video.videoUrl!.isEmpty) {
       videoPlayerError.value = 'Video URL missing';
+      AppLogger.error('Video URL is null or empty', tag: 'SUBJECT');
       return;
     }
 
-    // Validate HTTPS
-    if (!_isValidHttpsVideo(video.videoUrl!)) {
-      videoPlayerError.value =
-          'Video is unavailable. Please update the app or try later.';
-      AppLogger.error(
-        'Blocked HTTP video URL: ${video.videoUrl}',
-        tag: 'SUBJECT',
-      );
-      return;
-    }
+    // Log the actual URL being loaded
+    AppLogger.info('Video URL: ${video.videoUrl}', tag: 'SUBJECT');
 
     _initializeVideoPlayer(video.videoUrl!);
   }
@@ -113,21 +111,55 @@ class SubjectController extends GetxController {
       isVideoInitialized.value = false;
       videoPlayerError.value = '';
 
+      // Parse and validate URL
+      final uri = Uri.parse(videoUrl);
+      AppLogger.info('Parsed URI: ${uri.toString()}', tag: 'SUBJECT');
+      AppLogger.info('URI Scheme: ${uri.scheme}', tag: 'SUBJECT');
+      AppLogger.info('URI Host: ${uri.host}', tag: 'SUBJECT');
+
       final controller = VideoPlayerController.networkUrl(
-        Uri.parse(videoUrl),
-        videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
+        uri,
+        videoPlayerOptions: VideoPlayerOptions(
+          mixWithOthers: true,
+          allowBackgroundPlayback: false,
+        ),
+        httpHeaders: {
+          'Accept': '*/*',
+          'Connection': 'keep-alive',
+        },
       );
+
       videoPlayerController.value = controller;
 
-      await controller.initialize();
+      // Add timeout for initialization
+      await controller.initialize().timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          throw Exception('Video initialization timeout');
+        },
+      );
+
+      if (!controller.value.isInitialized) {
+        throw Exception('Video controller failed to initialize');
+      }
+
       isVideoInitialized.value = true;
 
-      controller.play();
+      // Check if video has valid duration
+      if (controller.value.duration == Duration.zero) {
+        AppLogger.warning('Video has zero duration', tag: 'SUBJECT');
+      }
+
+      // Auto-play on initialization
+      await controller.play();
       isVideoPlaying.value = true;
 
       controller.addListener(_videoPlayerListener);
 
-      AppLogger.success('Video player initialized', tag: 'SUBJECT');
+      AppLogger.success(
+        'Video player initialized successfully. Duration: ${controller.value.duration}',
+        tag: 'SUBJECT',
+      );
     } catch (e, stackTrace) {
       AppLogger.error(
         'Video initialization failed',
@@ -136,21 +168,43 @@ class SubjectController extends GetxController {
         stackTrace: stackTrace,
       );
 
-      videoPlayerError.value =
-          'Unable to play this video. Please try again later.';
+      String errorMessage = 'Unable to play this video.';
+      
+      if (e.toString().contains('timeout')) {
+        errorMessage = 'Video loading timeout. Please check your connection.';
+      } else if (e.toString().contains('Source error')) {
+        errorMessage = 'Video file not found or corrupted.';
+      } else if (e.toString().contains('NetworkError')) {
+        errorMessage = 'Network error. Please check your internet connection.';
+      }
+
+      videoPlayerError.value = errorMessage;
       isVideoInitialized.value = false;
     }
   }
 
-  /// Video player listener
   void _videoPlayerListener() {
     final controller = videoPlayerController.value;
     if (controller != null) {
       isVideoPlaying.value = controller.value.isPlaying;
+
+      // Log errors from video player
+      if (controller.value.hasError) {
+        AppLogger.error(
+          'Video playback error: ${controller.value.errorDescription}',
+          tag: 'SUBJECT',
+        );
+        videoPlayerError.value = 'Playback error occurred';
+      }
+
+      // Check if video ended
+      if (controller.value.position >= controller.value.duration) {
+        isVideoPlaying.value = false;
+        AppLogger.info('Video playback completed', tag: 'SUBJECT');
+      }
     }
   }
 
-  /// Toggle play/pause
   void togglePlayPause() {
     final controller = videoPlayerController.value;
     if (controller == null || !isVideoInitialized.value) return;
@@ -176,6 +230,7 @@ class SubjectController extends GetxController {
     final controller = videoPlayerController.value;
     if (controller != null) {
       controller.removeListener(_videoPlayerListener);
+      await controller.pause();
       await controller.dispose();
       videoPlayerController.value = null;
       isVideoInitialized.value = false;

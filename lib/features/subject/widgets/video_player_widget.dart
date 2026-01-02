@@ -4,7 +4,6 @@ import 'package:video_player/video_player.dart';
 import 'package:tutor_app/features/subject/controllers/subject_controller.dart';
 import 'package:tutor_app/utils/const/app_colors.dart';
 
-/// Custom video player widget with controls
 class VideoPlayerWidget extends GetView<SubjectController> {
   const VideoPlayerWidget({super.key});
 
@@ -70,20 +69,20 @@ class VideoPlayerWidget extends GetView<SubjectController> {
           children: [
             const Icon(Icons.error_outline, color: AppColors.white, size: 48),
             const SizedBox(height: 16),
-            Text(
+            const Text(
               'Unable to load video',
-              style: const TextStyle(
+              style: TextStyle(
                 color: AppColors.white,
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
               ),
             ),
             const SizedBox(height: 8),
-            Text(
+            Obx(() => Text(
               controller.videoPlayerError.value,
               style: const TextStyle(color: AppColors.grey400, fontSize: 12),
               textAlign: TextAlign.center,
-            ),
+            )),
           ],
         ),
       ),
@@ -105,7 +104,7 @@ class VideoPlayerWidget extends GetView<SubjectController> {
               duration: const Duration(milliseconds: 300),
               child: Container(
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: Colors.black54,
                   shape: BoxShape.circle,
                 ),
@@ -140,32 +139,31 @@ class VideoPlayerWidget extends GetView<SubjectController> {
           VideoProgressIndicator(
             videoController,
             allowScrubbing: true,
-            colors: VideoProgressColors(
+            colors: const VideoProgressColors(
               playedColor: AppColors.white,
               bufferedColor: AppColors.grey400,
               backgroundColor: AppColors.grey600,
             ),
           ),
           const SizedBox(height: 4),
-          // Time display
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Obx(() {
-                final position = videoController.value.position;
-                return Text(
-                  _formatDuration(position),
-                  style: const TextStyle(color: AppColors.white, fontSize: 12),
-                );
-              }),
-              Obx(() {
-                final duration = videoController.value.duration;
-                return Text(
-                  _formatDuration(duration),
-                  style: const TextStyle(color: AppColors.white, fontSize: 12),
-                );
-              }),
-            ],
+          // Time display - Use ValueListenableBuilder instead of Obx
+          ValueListenableBuilder<VideoPlayerValue>(
+            valueListenable: videoController,
+            builder: (context, value, child) {
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    _formatDuration(value.position),
+                    style: const TextStyle(color: AppColors.white, fontSize: 12),
+                  ),
+                  Text(
+                    _formatDuration(value.duration),
+                    style: const TextStyle(color: AppColors.white, fontSize: 12),
+                  ),
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -180,3 +178,4 @@ class VideoPlayerWidget extends GetView<SubjectController> {
     return '$minutes:$seconds';
   }
 }
+
