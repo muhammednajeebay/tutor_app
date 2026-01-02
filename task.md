@@ -20,31 +20,43 @@ Develop a Learning App by converting the given Figma design into Flutter UI whil
 
 #### Onboarding Page 1
 **UI as per Figma:**
-- Image
-- Title: Smarter Learning Starts Here
-- Description text
-- Next button
-- Skip button
+- [x] Image
+- [x] Title: Smarter Learning Starts Here
+- [x] Description text
+- [x] Next button
+- [x] Skip button
 
 **Behavior:**
-- Next → Onboarding Page 2
-- Skip → Home Page
+- [x] Next → Onboarding Page 2
+- [ ] Skip → Home Page
 
 #### Onboarding Page 2
 **UI as per Figma:**
-- Image
-- Title: Learn. Practice. Succeed.
-- Description
-- Next button
-- Skip button
+- [x] Image
+- [x] Title: Learn. Practice. Succeed.
+- [x] Description
+- [x] Next button
+- [x] Skip button
 
 **Behavior:**
-- Next → Home Page
-- Skip → Home Page
+- [x] Next → Home Page
+- [x] Skip → Home Page
 
 **Technical Expectation:**
-- Use GetX navigation
-- Optional: store onboarding completion flag (GetStorage / in-memory)
+- [x] Use GetX navigation
+- [x] Store onboarding completion flag (GetStorage)
+
+---
+
+### 2. Home Page & Navigation
+
+- [x] Add GetStorage dependency
+- [x] Create storage service for onboarding state
+- [x] Create dummy home screen
+- [x] Update onboarding to navigate to home
+- [x] Update main.dart to check onboarding status
+- [ ] Test first launch shows onboarding
+- [ ] Test subsequent launches show home
 
 ### 2. Home Page
 - Greeting section
