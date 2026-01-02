@@ -62,7 +62,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   void _finishOnboarding() async {
     await StorageService().setOnboardingComplete(true);
     if (mounted) {
-      Get.offAllNamed('/main-navigation');
+      Get.offAllNamed('/home');
     }
   }
 

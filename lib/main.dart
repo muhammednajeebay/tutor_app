@@ -8,6 +8,9 @@ import 'package:tutor_app/data/repositories/video_repository.dart';
 import 'package:tutor_app/data/services/api_service.dart';
 import 'package:tutor_app/data/services/home_api_service.dart';
 import 'package:tutor_app/features/home/controllers/home_controller.dart';
+import 'package:tutor_app/data/repositories/streak_repository.dart';
+import 'package:tutor_app/features/streaks/controllers/streaks_controller.dart';
+import 'package:tutor_app/features/streaks/screens/streaks_screen.dart';
 import 'package:tutor_app/features/subject/controllers/subject_controller.dart';
 import 'package:tutor_app/features/navigation/main_navigation_screen.dart';
 import 'package:tutor_app/features/onboarding/screens/onboarding_screen.dart';
@@ -45,6 +48,13 @@ void _registerDependencies() {
       repository: VideoRepositoryImpl(Get.find<ApiService>()),
     ),
   );
+
+  // Register StreaksController
+  Get.lazyPut<StreaksController>(
+    () => StreaksController(
+      repository: StreakRepositoryImpl(Get.find<ApiService>()),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -67,6 +77,7 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/home', page: () => const MainNavigationScreen()),
         GetPage(name: '/onboarding', page: () => const OnboardingScreen()),
         GetPage(name: '/subject', page: () => const SubjectScreen()),
+        GetPage(name: '/streaks', page: () => const StreaksScreen()),
       ],
     );
   }
