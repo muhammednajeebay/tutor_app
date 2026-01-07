@@ -10,9 +10,21 @@ import 'package:tutor_app/features/subject/widgets/video_player_widget.dart';
 import 'package:tutor_app/utils/const/app_colors.dart';
 import 'package:tutor_app/utils/const/app_sizes.dart';
 
-/// Subject screen showing video player and video list
-class SubjectScreen extends GetView<SubjectController> {
+class SubjectScreen extends StatefulWidget {
   const SubjectScreen({super.key});
+
+  @override
+  State<SubjectScreen> createState() => _SubjectScreenState();
+}
+
+class _SubjectScreenState extends State<SubjectScreen> {
+  late SubjectController controller;
+  @override
+  void initState() {
+    controller = Get.find<SubjectController>();
+    super.initState();
+    controller.onInit();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,14 +55,14 @@ class SubjectScreen extends GetView<SubjectController> {
         // Success state
         final videoDetails = controller.videoDetails.value;
         if (videoDetails == null ||
-            videoDetails.videos == null ||
-            videoDetails.videos!.videos == null ||
-            videoDetails.videos!.videos!.isEmpty) {
+            videoDetails.data == null ||
+            videoDetails.data!.videos == null ||
+            videoDetails.data!.videos!.isEmpty) {
           return const EmptyStateWidget(message: 'No videos available');
         }
 
-        final videos = videoDetails.videos!.videos!;
-        final title = videoDetails.videos!.title ?? 'Videos';
+        final videos = videoDetails.data!.videos!;
+        final title = videoDetails.data!.title ?? 'Videos';
 
         // Main content with pull-to-refresh
         return RefreshIndicator(

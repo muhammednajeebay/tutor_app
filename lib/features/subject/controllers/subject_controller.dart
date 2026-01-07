@@ -8,7 +8,7 @@ class SubjectController extends GetxController {
   final VideoRepository _repository;
 
   SubjectController({required VideoRepository repository})
-      : _repository = repository;
+    : _repository = repository;
 
   // State
   final isLoading = true.obs;
@@ -46,11 +46,11 @@ class SubjectController extends GetxController {
       AppLogger.success('Video details loaded successfully', tag: 'SUBJECT');
 
       // Auto-play first unlocked video if available
-      if (data.videos?.videos != null && data.videos!.videos!.isNotEmpty) {
+      if (data.data?.videos != null && data.data!.videos!.isNotEmpty) {
         // Find first unlocked video
-        final firstUnlockedVideo = data.videos!.videos!.firstWhere(
+        final firstUnlockedVideo = data.data!.videos!.firstWhere(
           (v) => v.status != 'locked',
-          orElse: () => data.videos!.videos!.first,
+          orElse: () => data.data!.videos!.first,
         );
         selectVideo(firstUnlockedVideo);
       }
@@ -113,9 +113,6 @@ class SubjectController extends GetxController {
 
       // Parse and validate URL
       final uri = Uri.parse(videoUrl);
-      AppLogger.info('Parsed URI: ${uri.toString()}', tag: 'SUBJECT');
-      AppLogger.info('URI Scheme: ${uri.scheme}', tag: 'SUBJECT');
-      AppLogger.info('URI Host: ${uri.host}', tag: 'SUBJECT');
 
       final controller = VideoPlayerController.networkUrl(
         uri,
@@ -123,10 +120,7 @@ class SubjectController extends GetxController {
           mixWithOthers: true,
           allowBackgroundPlayback: false,
         ),
-        httpHeaders: {
-          'Accept': '*/*',
-          'Connection': 'keep-alive',
-        },
+        httpHeaders: {'Accept': '*/*', 'Connection': 'keep-alive'},
       );
 
       videoPlayerController.value = controller;
@@ -152,6 +146,11 @@ class SubjectController extends GetxController {
 
       // Auto-play on initialization
       await controller.play();
+      controller.value = controller.value.copyWith(
+        position: currentVideo.value?.watchedDuration != null
+            ? Duration(seconds: currentVideo.value!.watchedDuration!)
+            : Duration.zero,
+      );
       isVideoPlaying.value = true;
 
       controller.addListener(_videoPlayerListener);
@@ -169,7 +168,7 @@ class SubjectController extends GetxController {
       );
 
       String errorMessage = 'Unable to play this video.';
-      
+
       if (e.toString().contains('timeout')) {
         errorMessage = 'Video loading timeout. Please check your connection.';
       } else if (e.toString().contains('Source error')) {
@@ -196,10 +195,21 @@ class SubjectController extends GetxController {
         );
         videoPlayerError.value = 'Playback error occurred';
       }
+      bool firstTimeexceeded = false;
+      // Validate position against 75% duration
+      final duration = controller.value.duration;
+      final position = controller.value.position;
+      if (duration != Duration.zero && position > duration * 0.75) {
+        if (firstTimeexceeded == false) {
+          _unlockNextVideo();
+          firstTimeexceeded = true;
+        }
+      }
 
       // Check if video ended
       if (controller.value.position >= controller.value.duration) {
         isVideoPlaying.value = false;
+
         AppLogger.info('Video playback completed', tag: 'SUBJECT');
       }
     }
@@ -245,5 +255,32 @@ class SubjectController extends GetxController {
     AppLogger.info('SubjectController disposed', tag: 'SUBJECT');
     _disposeVideoPlayer();
     super.onClose();
+  }
+
+  void _unlockNextVideo() {
+    final videos = videoDetails.value?.data?.videos;
+    final current = currentVideo.value;
+    if (videos == null || current == null) return;
+
+    final currentIndex = videos.indexWhere((v) => v.id == current.id);
+    if (currentIndex != -1 && currentIndex + 1 < videos.length) {
+      final nextVideo = videos[currentIndex + 1];
+      if (nextVideo.status == 'locked') {
+        nextVideo.status = 'unlocked';
+        AppLogger.info(
+          'Unlocked next video: ${nextVideo.title}',
+          tag: 'SUBJECT',
+        );
+      }
+
+      videoDetails.value![currentIndex + 1] = nextVideo;
+
+      videoDetails.refresh();
+
+      // AppLogger.success(
+      //   'Video list updated to unlock next video',
+      //   tag: 'SUBJECT',
+      // );
+    }
   }
 }

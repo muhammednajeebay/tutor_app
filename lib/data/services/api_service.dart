@@ -11,6 +11,7 @@ class ApiService {
   static const String homeEndpoint = 'home.php';
   static const String videoDetailsEndpoint = 'video_details.php';
   static const String streakEndpoint = 'streak.php';
+  static const String userId = 'user_id=8';
 
   ApiService(this._apiClient);
 
@@ -22,7 +23,7 @@ class ApiService {
 
   /// Fetches video details
   Future<VideoDetailsModel> getVideoDetails() async {
-    final response = await _apiClient.get(videoDetailsEndpoint);
+    final response = await _apiClient.get("$videoDetailsEndpoint?$userId");
     return VideoDetailsModel.fromJson(response);
   }
 
