@@ -146,17 +146,16 @@ class SubjectController extends GetxController {
 
       // Auto-play on initialization
       await controller.play();
-      controller.value = controller.value.copyWith(
-        position: currentVideo.value?.watchedDuration != null
-            ? Duration(seconds: currentVideo.value!.watchedDuration!)
-            : Duration.zero,
+      final Duration watchedDuration = Duration(
+        seconds: currentVideo.value?.watchedDuration ?? 0,
       );
+      videoPlayerController.value?.seekTo(watchedDuration);
       isVideoPlaying.value = true;
 
       controller.addListener(_videoPlayerListener);
 
       AppLogger.success(
-        'Video player initialized successfully. Duration: ${controller.value.duration}',
+        'Video player initialized successfully. Duration: ${controller.value.duration}  ${watchedDuration.inSeconds}s',
         tag: 'SUBJECT',
       );
     } catch (e, stackTrace) {
@@ -209,7 +208,7 @@ class SubjectController extends GetxController {
       // Check if video ended
       if (controller.value.position >= controller.value.duration) {
         isVideoPlaying.value = false;
-
+        saveProgress();
         AppLogger.info('Video playback completed', tag: 'SUBJECT');
       }
     }
@@ -221,6 +220,7 @@ class SubjectController extends GetxController {
 
     if (controller.value.isPlaying) {
       controller.pause();
+      saveProgress();
       AppLogger.debug('Video paused', tag: 'SUBJECT');
     } else {
       controller.play();
@@ -254,7 +254,31 @@ class SubjectController extends GetxController {
   void onClose() {
     AppLogger.info('SubjectController disposed', tag: 'SUBJECT');
     _disposeVideoPlayer();
+    saveProgress();
     super.onClose();
+  }
+
+  Future<void> saveProgress() async {
+    final video = currentVideo.value;
+    if (video == null) return;
+
+    final Duration? position = await videoPlayerController.value?.position;
+
+    final int secondsWatched = position?.inSeconds ?? 0;
+
+    final totalDuration =
+        videoPlayerController.value?.value.duration.inSeconds;
+
+    AppLogger.info(
+      'Saving progress for video ${video.title}: $secondsWatched seconds  ${video.totalDuration} ${video.id}',
+      tag: 'SUBJECT',
+    );
+
+    await _repository.saveProgress(
+      videoId: video.id!,
+      totalDuration: totalDuration ?? 0,
+      userProgress: secondsWatched,
+    );
   }
 
   void _unlockNextVideo() {

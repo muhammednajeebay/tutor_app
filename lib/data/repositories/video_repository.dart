@@ -5,6 +5,11 @@ import 'package:tutor_app/data/services/api_service.dart';
 /// Abstract repository for video data
 abstract class VideoRepository {
   Future<VideoDetailsModel> getVideoDetails({bool forceRefresh = false});
+  Future<String> saveProgress({
+    required int videoId,
+    required int totalDuration,
+    required int userProgress,
+  });
 }
 
 /// Implementation of video repository with caching
@@ -66,6 +71,19 @@ class VideoRepositoryImpl implements VideoRepository {
 
       rethrow;
     }
+  }
+
+  @override
+  Future<String> saveProgress({
+    required int videoId,
+    required int totalDuration,
+    required int userProgress,
+  }) {
+    return _apiService.saveProgress(
+      videoId: videoId,
+      totalDuration: totalDuration,
+      userProgress: userProgress,
+    );
   }
 
   /// Clear the cache
